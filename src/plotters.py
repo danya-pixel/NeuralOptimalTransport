@@ -9,11 +9,20 @@ import seaborn as sns
 import torch
 import gc
 
-def plot_images(X, Y, T):
-    freeze(T);
+def plot_images(X, Y, T, vae, is_normalized):
+    freeze(T); 
     with torch.no_grad():
-        T_X = T(X)
-        imgs = torch.cat([X, T_X, Y]).to('cpu').permute(0,2,3,1).mul(0.5).add(0.5).numpy().clip(0,1)
+        X_encoded = vae.encode(X)[0].sample()
+        T_X = T(X_encoded)
+        with torch.no_grad():
+            T_X = vae.decode(T_X).sample
+            # print('X:', X[0].to('cpu').numpy().clip(0,1))
+            # print('T_X:', T_X[0].to('cpu').numpy().clip(0,1))
+            if is_normalized:
+                imgs = torch.cat([X, T_X, Y]).to('cpu').permute(0,2,3,1).mul(0.5).add(0.5).numpy().clip(0,1)
+            else:
+                imgs = torch.cat([X, T_X, Y]).to('cpu').permute(0,2,3,1).numpy().clip(0,1)
+    
 
     fig, axes = plt.subplots(3, 10, figsize=(15, 4.5), dpi=150)
     for i, ax in enumerate(axes.flatten()):
@@ -29,10 +38,10 @@ def plot_images(X, Y, T):
     torch.cuda.empty_cache(); gc.collect()
     return fig, axes
 
-def plot_random_images(X_sampler, Y_sampler, T):
+def plot_random_images(X_sampler, Y_sampler, T, vae):
     X = X_sampler.sample(10)
     Y = Y_sampler.sample(10)
-    return plot_images(X, Y, T)
+    return plot_images(X, Y, T, vae=vae, is_normalized=True)
 
 def plot_Z_images(XZ, Y, T):
     freeze(T);

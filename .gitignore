@@ -127,3 +127,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+.vscode
+wandb
+datasets/afhq
+stats/*.json
