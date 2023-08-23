@@ -33,7 +33,7 @@ def load_dataset(name, path, img_size=64, batch_size=64, test_ratio=0.1, device=
         transform = Compose([Resize((img_size, img_size)), ToTensor(), Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
         dataset = ImageFolder(path, transform=transform)
     elif name in ['cat', 'dog', 'wild']:
-        transform = ToTensor()
+        transform = Compose([ToTensor(), Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
         dataset = ImageFolder(path+'/train/'+name, transform=transform)
     else:
         raise Exception('Unknown dataset')
