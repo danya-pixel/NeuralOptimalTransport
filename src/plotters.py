@@ -16,8 +16,8 @@ def plot_images(X, Y, T, vae, is_normalized):
         T_X = T(X_encoded)
         with torch.no_grad():
             T_X = vae.decode(T_X).sample
-            # print('X:', X[0].to('cpu').numpy().clip(0,1))
-            # print('T_X:', T_X[0].to('cpu').numpy().clip(0,1))
+            # print('X:', X[0].to('cpu').mul(0.5).add(0.5).numpy().clip(0,1))
+            # print('T_X:', T_X[0].to('cpu').mul(0.5).add(0.5).numpy().clip(0,1))
             if is_normalized:
                 imgs = torch.cat([X, T_X, Y]).to('cpu').permute(0,2,3,1).mul(0.5).add(0.5).numpy().clip(0,1)
             else:

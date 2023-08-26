@@ -143,20 +143,25 @@ def get_loader_stats(loader, batch_size=8, verbose=False):
     return mu, sigma
 
 def get_pushed_loader_stats(T, loader, batch_size=8, verbose=False, device='cuda',
-                            use_downloaded_weights=False):
+                            use_downloaded_weights=False, vae=None):
     dims = 2048
     block_idx = InceptionV3.BLOCK_INDEX_BY_DIM[dims]
     model = InceptionV3([block_idx], use_downloaded_weights=use_downloaded_weights).to(device)
     freeze(model); freeze(T)
     
-    size = len(loader.dataset)
     pred_arr = []
     
     with torch.no_grad():
         for step, (X, _) in enumerate(loader) if not verbose else tqdm(enumerate(loader)):
             for i in range(0, len(X), batch_size):
                 start, end = i, min(i + batch_size, len(X))
-                batch = T(X[start:end].type(torch.FloatTensor).to(device)).add(1).mul(.5)
+                batch = X[start:end].type(torch.FloatTensor).to(device)
+                print(start, end, batch.shape)
+                if vae is not None:
+                    batch_encoded = vae.encode(batch)[0].sample()
+                    batch = vae.decode(T(batch_encoded)).sample.add(1).mul(.5)
+                else:
+                    batch = T(X)
                 pred_arr.append(model(batch)[0].cpu().data.numpy().reshape(end-start, -1))
 
     pred_arr = np.vstack(pred_arr)
